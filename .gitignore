@@ -1,0 +1,66 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+venv/
+.venv/
+env/
+backend/venv/
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Django
+*.log
+local_settings.py
+db.sqlite3
+backend/db.sqlite3
+/staticfiles/
+backend/staticfiles/
+media/
+backend/media/
+
+# Tests / coverage
+.pytest_cache/
+coverage.xml
+htmlcov/
+.coverage
+.coverage.*
+
+# IDEs and editors
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Python tooling
+.mypy_cache/
+pip-wheel-metadata/
+pip-log.txt
+
+# Docker / env
+.env
+.env.*
+docker-compose.override.yml
+
+# Node / frontend
+frontend/node_modules/
+frontend/build/
+npm-debug.log*
+yarn-error.log*
+yarn-debug.log*
+
+# Misc
+celerybeat-schedule
+*.pem
+*.sqlite3-journal

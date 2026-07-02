@@ -9,7 +9,6 @@ from django.contrib.auth.models import (
 from django_field_encryption import EncryptedTextField
 
 class UserManager(BaseUserManager):
-    # К этому нужно вернуться и понять как вызывается и какие парам передаются
     def create_superuser(self, spotify_id, password, **extra_fields):
         extra_fields.setdefault("is_staff", True)
         extra_fields.setdefault("is_superuser", True)
@@ -44,9 +43,7 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     objects = UserManager()
 
-    # Посмотри как это работает
     USERNAME_FIELD = "spotify_id"
-    # Посмотри как это работает
     REQUIRED_FIELDS = []
 
     class Meta:
