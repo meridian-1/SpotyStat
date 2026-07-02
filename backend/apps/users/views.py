@@ -12,15 +12,16 @@ from urllib.request import Request, urlopen
 from django.conf import settings
 from django.contrib.auth import login as django_login, logout as django_logout
 from django.core.files.base import ContentFile
+from django.middleware.csrf import get_token
 from django.shortcuts import redirect
 from django.utils import timezone
-from rest_framework import generics, permissions, status
+from rest_framework import permissions, status
+from rest_framework.authentication import SessionAuthentication
 from rest_framework.request import Request as DRFRequest
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from .models import User
-from .serializers import UserProfileSerializer, UserUpdateSerializer
 
 SPOTIFY_AUTH_URL = "https://accounts.spotify.com/authorize"
 SPOTIFY_TOKEN_URL = "https://accounts.spotify.com/api/token"
@@ -28,7 +29,7 @@ SPOTIFY_ME_URL = "https://api.spotify.com/v1/me"
 
 
 class SpotifyAuthError(Exception):
-    """ An error occurring at any step of the exchange or request to the Spotify API. """
+    """An error occurring during Spotify OAuth or profile fetch."""
 
 
 def _frontend_url() -> str:
@@ -55,7 +56,6 @@ def _build_spotify_login_url(state: str) -> str:
 
 
 def _exchange_code_for_tokens(code: str) -> dict:
-    """ OAuth: Exchange the authorization code for Spotify access and refresh tokens. """
     request = Request(
         SPOTIFY_TOKEN_URL,
         data=urlencode(
@@ -84,7 +84,6 @@ def _exchange_code_for_tokens(code: str) -> dict:
 
 
 def _fetch_spotify_profile(access_token: str) -> dict:
-    """ OAuth: Request the Spotify user profile (/v1/me)"""
     request = Request(
         SPOTIFY_ME_URL, headers={"Authorization": f"Bearer {access_token}"}
     )
@@ -118,7 +117,6 @@ def _save_spotify_avatar(user: User, avatar_url: str | None) -> None:
 
 
 def _sync_user_from_spotify(profile: dict, tokens: dict) -> User:
-    """ OAuth: get_or_create user spotify_id and save token """
     spotify_id = profile["id"]
     display_name = profile.get("display_name") or spotify_id
     email = profile.get("email") or ""
@@ -151,21 +149,35 @@ def _sync_user_from_spotify(profile: dict, tokens: dict) -> User:
     return user
 
 
-class SpotifyLoginView(APIView):
-    """ GET /auth/spotify/login/ """
+def _serialize_user(user: User, request: DRFRequest) -> dict:
+    avatar_url = None
+    if user.avatar:
+        try:
+            avatar_url = request.build_absolute_uri(user.avatar.url)
+        except Exception:
+            avatar_url = None
 
+    return {
+        "id": user.spotify_id,
+        "spotify_id": user.spotify_id,
+        "display_name": user.display_name or user.spotify_id,
+        "email": user.email,
+        "avatar_url": avatar_url,
+    }
+
+
+class SpotifyLoginView(APIView):
     permission_classes = [permissions.AllowAny]
     authentication_classes = []
 
     def get(self, request: DRFRequest) -> Response:
+        get_token(request._request)
         state = secrets.token_urlsafe(32)
         request.session["spotify_oauth_state"] = state
         return Response({"authorizationUrl": _build_spotify_login_url(state)})
 
 
 class SpotifyCallbackView(APIView):
-    """ GET /auth/spotify/callback/ """
-
     permission_classes = [permissions.AllowAny]
     authentication_classes = []
 
@@ -197,32 +209,18 @@ class SpotifyCallbackView(APIView):
 
 
 class MeView(APIView):
-    """ GET /auth/me/ """
-
     permission_classes = [permissions.IsAuthenticated]
+    authentication_classes = [SessionAuthentication]
 
     def get(self, request: DRFRequest) -> Response:
-        serializer = UserProfileSerializer(request.user)
-        return Response(serializer.data)
+        get_token(request._request)
+        return Response(_serialize_user(request.user, request))
 
 
 class LogoutView(APIView):
-    """ POST /auth/logout/ """
-
     permission_classes = [permissions.IsAuthenticated]
+    authentication_classes = [SessionAuthentication]
 
     def post(self, request: DRFRequest) -> Response:
         django_logout(request._request)
         return Response({"detail": "Logged out"})
-
-
-class ProfileView(generics.RetrieveUpdateAPIView):
-    permission_classes = [permissions.IsAuthenticated]
-
-    def get_object(self):
-        return self.request.user
-
-    def get_serializer_class(self):
-        if self.request.method in ["PUT", "PATCH"]:
-            return UserUpdateSerializer
-        return UserProfileSerializer

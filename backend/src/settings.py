@@ -165,19 +165,21 @@ SPOTIFY_CLIENT_ID = config("SPOTIFY_CLIENT_ID")
 SPOTIFY_CLIENT_SECRET = config("SPOTIFY_CLIENT_SECRET")
 SPOTIFY_REDIRECT_URI = config(
     "SPOTIFY_REDIRECT_URI",
-    default="http://127.0.0.1:8000/auth/spotify/callback/",
+    default="http://localhost:5173/api/auth/spotify/callback/",
 )
 SPOTIFY_SCOPE = config(
     "SPOTIFY_SCOPE",
     default="user-read-email user-read-private user-top-read user-read-recently-played",
 )
+FRONTEND_URL = config("FRONTEND_URL", default="http://localhost:5173")
+ 
 
 FIELD_ENCRYPTION_KEY = config("FIELD_ENCRYPTION_KEY")
 
 # CORS configuration
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
 ]
 
 # нужно ТОЛЬКО если фронт шлёт cookie / сессии кросс-доменно
