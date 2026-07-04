@@ -23,6 +23,9 @@ from rest_framework.views import APIView
 
 from .models import User
 
+from .serializers import UserSerializer
+
+
 SPOTIFY_AUTH_URL = "https://accounts.spotify.com/authorize"
 SPOTIFY_TOKEN_URL = "https://accounts.spotify.com/api/token"
 SPOTIFY_ME_URL = "https://api.spotify.com/v1/me"
@@ -214,7 +217,8 @@ class MeView(APIView):
 
     def get(self, request: DRFRequest) -> Response:
         get_token(request._request)
-        return Response(_serialize_user(request.user, request))
+        serializer = UserSerializer(request.user, context={"request": request})
+        return Response(serializer.data)
 
 
 class LogoutView(APIView):

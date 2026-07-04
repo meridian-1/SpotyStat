@@ -44,11 +44,10 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    
 ]
 
 if DEBUG:
-    INSTALLED_APPS += ['debug_toolbar']
+    INSTALLED_APPS += ["debug_toolbar"]
     MIDDLEWARE += ["debug_toolbar.middleware.DebugToolbarMiddleware"]
     INTERNAL_IPS = ["127.0.0.1"]
 
@@ -165,14 +164,14 @@ SPOTIFY_CLIENT_ID = config("SPOTIFY_CLIENT_ID")
 SPOTIFY_CLIENT_SECRET = config("SPOTIFY_CLIENT_SECRET")
 SPOTIFY_REDIRECT_URI = config(
     "SPOTIFY_REDIRECT_URI",
-    default="http://localhost:5173/api/auth/spotify/callback/",
+    default="http://127.0.0.1:5173/api/auth/spotify/callback/",
 )
 SPOTIFY_SCOPE = config(
     "SPOTIFY_SCOPE",
     default="user-read-email user-read-private user-top-read user-read-recently-played",
 )
 FRONTEND_URL = config("FRONTEND_URL", default="http://localhost:5173")
- 
+
 
 FIELD_ENCRYPTION_KEY = config("FIELD_ENCRYPTION_KEY")
 
